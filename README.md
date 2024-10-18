@@ -22,10 +22,6 @@ Get information about the current account subscription its usage.
 
 ScrapFly API key is used as a credential key. To get your API key, register for free.
 
-## Compatibility
-
-_State the minimum n8n version, as well as which versions you test against. You can also include any known version incompatibility issues._
-
 ## Usage
 
 For example usage and predefined workflow tempaltes, refer to [ScrapFly's n8n integration docs](https://scrapfly.io/docs/integration/n8n).
