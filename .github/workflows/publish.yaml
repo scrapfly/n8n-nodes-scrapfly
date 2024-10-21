@@ -19,7 +19,7 @@ jobs:
           node-version: 20
 
       - run: npm install
-      - run: npm build
+      - run: npm run build
 
       - name: Publish to NPM
         run: |
