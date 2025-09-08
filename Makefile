@@ -4,4 +4,5 @@ bump-version:
 	git add :/
 	git commit -m "Bump version to ${VERSION}"
 	git tag "v${VERSION}"
-	git push --follow-tags
+	git push
+	git push origin "v${VERSION}"

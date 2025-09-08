@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/scrapfly/n8n-nodes-scrapfly.git"
+    "url": "git+https://github.com/scrapfly/n8n-nodes-scrapfly.git"
   },
   "main": "index.js",
   "scripts": {
