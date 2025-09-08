@@ -30,3 +30,7 @@ For example usage and predefined workflow tempaltes, refer to [ScrapFly's n8n in
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
 * [ScrapFly documentation](https://scrapfly.io/docs)
+
+## Development 
+
+To publish a new release, you need repo access and play command like `make bump-version VERSION=0.1.3`
