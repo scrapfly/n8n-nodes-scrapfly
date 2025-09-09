@@ -1,5 +1,4 @@
-import { IExecuteFunctions, NodeApiError } from 'n8n-workflow';
-import { OptionsWithUri } from 'request';
+import { IExecuteFunctions, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineScrapeParams } from './params';
 
 interface scrapeError {
@@ -14,15 +13,15 @@ async function handleLargeObject(
 	result: any,
 	format: 'clob' | 'blob',
 ): Promise<any> {
-	const options: OptionsWithUri = {
+	const options: IHttpRequestOptions = {
 		headers: {
 			'accept-encoding': 'gzip, deflate, br',
 			'user-agent': userAgent,
 		},
 		method: 'GET',
-		uri: result.content,
+		url: result.content,
 		json: false,
-		encoding: null,
+		encoding: 'arraybuffer',
 	};
 
 	const content = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
@@ -43,14 +42,14 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 
 	const params = DefineScrapeParams.call(this, i);
 	const method = this.getNodeParameter('method', i) as string;
-	const options: OptionsWithUri = {
+	const options: IHttpRequestOptions = {
 		headers: {
 			accept: 'application/json',
 			'accept-encoding': 'gzip, deflate, br',
 			'user-agent': userAgent,
 		},
-		method: method,
-		uri: `https://api.scrapfly.io/scrape?${params.toString()}`,
+		method: method as any,
+		url: `https://api.scrapfly.io/scrape?${params.toString()}`,
 		json: true,
 	};
 

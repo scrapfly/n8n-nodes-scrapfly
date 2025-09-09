@@ -1,5 +1,4 @@
-import { IExecuteFunctions, NodeApiError } from 'n8n-workflow';
-import { OptionsWithUri } from 'request';
+import { IExecuteFunctions, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineExtractionParams } from './params';
 
 interface extractionError {
@@ -13,13 +12,13 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 	let responseData;
 
 	const params = DefineExtractionParams.call(this, i);
-	const options: OptionsWithUri = {
+	const options: IHttpRequestOptions = {
 		headers: {
 			accept: 'application/json',
 			'user-agent': userAgent,
 		},
 		method: 'POST',
-		uri: `https://api.scrapfly.io/extraction?${params.toString()}`,
+		url: `https://api.scrapfly.io/extraction?${params.toString()}`,
 		json: true,
 	};
 

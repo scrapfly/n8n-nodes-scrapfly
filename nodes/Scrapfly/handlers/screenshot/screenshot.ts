@@ -1,5 +1,4 @@
-import { IExecuteFunctions, INodeExecutionData, NodeApiError } from 'n8n-workflow';
-import { OptionsWithUri } from 'request';
+import { IExecuteFunctions, INodeExecutionData, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineScreenshotParams } from './params';
 
 interface screenshotError {
@@ -24,17 +23,16 @@ export async function screenshot(
 		params.get('fileName') || (url ? url.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'unknown');
 	fileName = fileName + '.' + format;
 
-	const options: OptionsWithUri = {
+	const options: IHttpRequestOptions = {
 		headers: {
 			accept: 'application/json',
 			'accept-encoding': 'gzip, deflate, br',
 			'user-agent': userAgent,
 		},
 		method: 'GET',
-		uri: `https://api.scrapfly.io/screenshot?${params.toString()}`,
-		//@ts-ignore
-		resolveWithFullResponse: true, // return the full response instead of just the body
-		encoding: null, // disable endoing to get the screenshot body as Buffer
+		url: `https://api.scrapfly.io/screenshot?${params.toString()}`,
+		returnFullResponse: true, // return the full response instead of just the body
+		encoding: 'arraybuffer', // get the screenshot body as ArrayBuffer
 		json: true,
 	};
 

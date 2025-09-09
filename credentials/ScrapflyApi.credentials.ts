@@ -2,6 +2,7 @@ import {
 	IAuthenticateGeneric,
 	ICredentialType,
 	INodeProperties,
+	ICredentialTestRequest,
 } from 'n8n-workflow';
 
 export class ScrapflyApi implements ICredentialType {
@@ -25,4 +26,10 @@ export class ScrapflyApi implements ICredentialType {
 			},
 		},
 	};
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: 'https://api.scrapfly.io/',
+			url: 'account',
+		},
+	};	
 }
