@@ -39,7 +39,7 @@ export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 		params.append('extraction_model', extraction_model);
 	}
 
-	if (extraction_model) {
+	if (webhook_name) {
 		params.append('webhook_name', webhook_name);
 	}
 

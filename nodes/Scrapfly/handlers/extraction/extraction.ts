@@ -1,11 +1,10 @@
 import { IExecuteFunctions, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineExtractionParams } from './params';
 
-interface extractionError {
+interface extractionError extends Record<string, any> {
 	scrapflyErrorCode: string;
 	httpCode: string;
 	message: string;
-	reason?: string;
 }
 
 export async function extract(this: IExecuteFunctions, i: number, userAgent: string): Promise<any> {
@@ -20,6 +19,7 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 		method: 'POST',
 		url: `https://api.scrapfly.io/extraction?${params.toString()}`,
 		json: true,
+		returnFullResponse: true
 	};
 
 	options.body = params.get('body');
@@ -31,20 +31,33 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 		const error: extractionError = {
 			scrapflyErrorCode: 'Error',
 			httpCode: 'Code',
-			message: 'Message',
-			reason: 'Reason',
+			message: 'Message'
 		};
 
-		const body = e.cause.error;
-		error.httpCode = e.httpCode || error.httpCode;
-		error.scrapflyErrorCode = body.code || error.scrapflyErrorCode;
-		error.message = body.message || error.message;
-		error.reason = body.reason || error.reason;
+		let body;
 
-		throw new NodeApiError(this.getNode(), e, {
+        if (Array.isArray(e.messages) && e.messages.length > 0) {
+            try {
+				const message = e.messages[0];			
+				const jsonResponse = message.replace(/^\s*\d+\s*-\s*/, "");
+                body = JSON.parse(jsonResponse);
+            }
+            catch (err) {
+                body = e.description;
+            }
+        }
+        else {
+            body = e.description;
+        }
+
+		error.httpCode = e.httpCode || error.httpCode;
+		error.scrapflyErrorCode = body?.code || error.scrapflyErrorCode;
+		error.message = body?.message || error.message;
+
+		throw new NodeApiError(this.getNode(), error, {
 			httpCode: error.httpCode,
-			description: `[${error.scrapflyErrorCode}] ${error.reason}`,
-			message: error.message,
+			description: error.message,
+			message: error.scrapflyErrorCode,
 		});
 	}
 }
