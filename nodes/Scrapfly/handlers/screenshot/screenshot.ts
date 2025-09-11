@@ -12,6 +12,7 @@ export async function screenshot(
 	i: number,
 	item: INodeExecutionData,
 	userAgent: string,
+	apiHost: string,
 ): Promise<any> {
 	let responseData;
 	const params = DefineScreenshotParams.call(this, i);
@@ -28,7 +29,7 @@ export async function screenshot(
 			'user-agent': userAgent,
 		},
 		method: 'GET',
-		url: `https://api.scrapfly.io/screenshot?${params.toString()}`,
+		url: `${apiHost}/screenshot?${params.toString()}`,
 		//@ts-ignore
 		resolveWithFullResponse: true,
 		encoding: null as unknown as IHttpRequestOptions['encoding'],

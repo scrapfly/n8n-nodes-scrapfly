@@ -1,6 +1,6 @@
 import { IExecuteFunctions, IHttpRequestOptions } from 'n8n-workflow';
 
-export async function account(this: IExecuteFunctions, userAgent: string): Promise<any> {
+export async function account(this: IExecuteFunctions, userAgent: string, apiHost: string): Promise<any> {
 	let responseData;
 	const options: IHttpRequestOptions = {
 		headers: {
@@ -9,7 +9,7 @@ export async function account(this: IExecuteFunctions, userAgent: string): Promi
 			'user-agent': userAgent,
 		},
 		method: 'GET',
-		url: 'https://api.scrapfly.io/account',
+		url: `${apiHost}/account`,
 		json: true,
 	};
 

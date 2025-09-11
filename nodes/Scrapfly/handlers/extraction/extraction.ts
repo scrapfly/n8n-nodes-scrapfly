@@ -7,7 +7,7 @@ interface extractionError extends Record<string, any> {
 	message: string;
 }
 
-export async function extract(this: IExecuteFunctions, i: number, userAgent: string): Promise<any> {
+export async function extract(this: IExecuteFunctions, i: number, userAgent: string, apiHost: string): Promise<any> {
 	let responseData;
 	const requestBody = this.getNodeParameter('body', i) as string;
 	const content_type = this.getNodeParameter('content_type', i) as string;
@@ -21,7 +21,7 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 			'content-type': content_type,
 		},
 		method: 'POST',
-		url: `https://api.scrapfly.io/extraction?${params.toString()}`,
+		url: `${apiHost}/extraction?${params.toString()}`,
 		json: true,
 		returnFullResponse: true
 	};

@@ -10,6 +10,7 @@ interface scrapeError extends Record<string, any> {
 async function handleLargeObject(
 	this: IExecuteFunctions,
 	userAgent: string,
+	apiHost: string,
 	result: any,
 	format: 'clob' | 'blob',
 ): Promise<any> {
@@ -38,7 +39,7 @@ async function handleLargeObject(
 	return result;
 }
 
-export async function scrape(this: IExecuteFunctions, i: number, userAgent: string): Promise<any> {
+export async function scrape(this: IExecuteFunctions, i: number, userAgent: string, apiHost: string): Promise<any> {
 	let responseData;
 
 	const params = DefineScrapeParams.call(this, i);
@@ -50,7 +51,7 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 			'user-agent': userAgent,
 		},
 		method: method as any,
-		url: `https://api.scrapfly.io/scrape?${params.toString()}`,
+		url: `${apiHost}/scrape?${params.toString()}`,
 		json: true,
 	};
 
@@ -67,6 +68,7 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 			responseData.result = await handleLargeObject.call(
 				this,
 				userAgent,
+				apiHost,
 				responseData.result,
 				format,
 			);
