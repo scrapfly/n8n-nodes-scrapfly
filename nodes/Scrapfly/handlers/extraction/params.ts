@@ -1,8 +1,8 @@
 import { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { urlsafe_b64encode } from '../utils';
 
 export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 	const content_type = this.getNodeParameter('content_type', index) as string;
-	const body = this.getNodeParameter('body', index) as string;
 	const additionalFields = this.getNodeParameter('additionalFields', index) as IDataObject;
 
 	// additional fields
@@ -15,7 +15,6 @@ export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 
 	const params = new URLSearchParams({
 		content_type: content_type,
-		body: body,
 	});
 
 	if (url) {
@@ -43,15 +42,6 @@ export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 		params.append('webhook_name', webhook_name);
 	}
 
+	console.log("extraction_template", params.get('extraction_template'));
 	return params;
-}
-
-function urlsafe_b64encode(data: string): string {
-	const encoder = new TextEncoder();
-	const encoded = encoder.encode(data);
-	const base64 = btoa(String.fromCharCode(...encoded))
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '');
-	return base64;
 }

@@ -14,6 +14,7 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 	const options: IHttpRequestOptions = {
 		headers: {
 			accept: 'application/json',
+			'accept-encoding': 'gzip, deflate, br',
 			'user-agent': userAgent,
 		},
 		method: 'POST',
@@ -22,7 +23,8 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 		returnFullResponse: true
 	};
 
-	options.body = params.get('body');
+	const requestBody = this.getNodeParameter('body', i) as string;
+	options.body = requestBody;
 
 	try {
 		responseData = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);

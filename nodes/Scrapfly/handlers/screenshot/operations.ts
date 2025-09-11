@@ -83,8 +83,8 @@ export const Screenshot: INodeProperties[] = [
 				displayName: 'Resolution',
 				name: 'resolution',
 				type: 'string',
-				placeholder: '1950x1080',
-				default: '1950x1080',
+				placeholder: '1920x1080',
+				default: '1920x1080',
 				description: 'Screen resolution for screenshot, width x height',
 			},
 			{

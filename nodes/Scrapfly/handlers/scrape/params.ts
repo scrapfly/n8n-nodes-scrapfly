@@ -1,4 +1,5 @@
 import { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { urlsafe_b64encode } from '../utils';
 
 interface Headers {
 	headers: {
@@ -195,14 +196,4 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 	}
 
 	return params;
-}
-
-function urlsafe_b64encode(data: string): string {
-	const encoder = new TextEncoder();
-	const encoded = encoder.encode(data);
-	const base64 = btoa(String.fromCharCode(...encoded))
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '');
-	return base64;
 }

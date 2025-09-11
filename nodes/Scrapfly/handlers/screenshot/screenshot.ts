@@ -1,11 +1,10 @@
 import { IExecuteFunctions, INodeExecutionData, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineScreenshotParams } from './params';
 
-interface screenshotError {
+interface screenshotError extends Record<string, any> {
 	scrapflyErrorCode: string;
 	httpCode: string;
 	message: string;
-	reason?: string;
 }
 
 export async function screenshot(
@@ -19,8 +18,7 @@ export async function screenshot(
 
 	const url = params.get('url');
 	const format = params.get('format') || 'jpg';
-	let fileName =
-		params.get('fileName') || (url ? url.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'unknown');
+	let fileName = params.get('fileName') || (url ? url.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'unknown');
 	fileName = fileName + '.' + format;
 
 	const options: IHttpRequestOptions = {
@@ -31,13 +29,15 @@ export async function screenshot(
 		},
 		method: 'GET',
 		url: `https://api.scrapfly.io/screenshot?${params.toString()}`,
-		returnFullResponse: true, // return the full response instead of just the body
-		encoding: 'arraybuffer', // get the screenshot body as ArrayBuffer
-		json: true,
+		//@ts-ignore
+		resolveWithFullResponse: true,
+		encoding: null as unknown as IHttpRequestOptions['encoding'],
+		json: true
 	};
 
 	try {
 		responseData = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
+
 		const mimeType = responseData.headers['content-type'] || 'application/octet-stream';
 
 		const newItem: INodeExecutionData = {
@@ -51,7 +51,7 @@ export async function screenshot(
 		}
 
 		item = newItem;
-		const dataPropertyNameDownload = 'data';
+		const dataPropertyNameDownload = fileName;
 
 		item.binary![dataPropertyNameDownload] = await this.helpers.prepareBinaryData(
 			responseData.body as Buffer,
@@ -64,27 +64,35 @@ export async function screenshot(
 		const error: screenshotError = {
 			scrapflyErrorCode: 'Error',
 			httpCode: 'Code',
-			message: 'Message',
-			reason: 'Reason',
+			message: 'Message'
 		};
 
 		let body;
-		try {
-			body = JSON.parse(e.cause.error);
-		} catch (jsonError) {
-			console.error('Failed to parse error body:', jsonError);
-			body = {};
-		}
-
+        if (Array.isArray(e.messages) && e.messages.length > 0) {
+            try {
+				const message = e.messages[0];			
+				const jsonResponse = message.replace(/^\s*\d+\s*-\s*/, "");
+                body = JSON.parse(jsonResponse);
+				// in case string was double-quoted
+                if (typeof body === 'string') {
+                    body = JSON.parse(body);
+                }
+            }
+            catch (err) {
+                body = e.description;
+            }
+        }
+        else {
+            body = e.description;
+        }
 		error.httpCode = e.httpCode || error.httpCode;
-		error.scrapflyErrorCode = body.code || error.scrapflyErrorCode;
-		error.message = body.message || error.message;
-		error.reason = body.reason || error.reason;
+		error.scrapflyErrorCode = body?.code || error.scrapflyErrorCode;
+		error.message = body?.message || error.message;
 
-		throw new NodeApiError(this.getNode(), e, {
+		throw new NodeApiError(this.getNode(), error, {
 			httpCode: error.httpCode,
-			description: `[${error.scrapflyErrorCode}] ${error.reason}`,
-			message: error.message,
+			description: error.message,
+			message: error.scrapflyErrorCode,
 		});
 	}
 }
