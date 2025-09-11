@@ -40,9 +40,19 @@ export const Extraction: INodeProperties[] = [
 	{
 		displayName: 'Content Type',
 		name: 'content_type',
-		type: 'string',
-		required: true,
+		type: 'options',
+		options: [
+			{ name: 'application/json', value: 'application/json' },
+			{ name: 'application/ld+json', value: 'application/ld+json' },
+			{ name: 'application/xml', value: 'application/xml' },
+			{ name: 'text/plain', value: 'text/plain' },
+			{ name: 'text/html', value: 'text/html' },
+			{ name: 'text/markdown', value: 'text/markdown' },
+			{ name: 'text/csv', value: 'text/csv' },
+			{ name: 'application/xhtml+xml', value: 'application/xhtml+xml' },
+		],
 		default: 'text/html',
+		required: true,
 		description:
 			'Content type of the document pass in the body - You must specify the content type of the document by using this parameter',
 		displayOptions: {
