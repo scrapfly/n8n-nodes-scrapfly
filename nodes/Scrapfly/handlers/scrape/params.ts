@@ -124,7 +124,7 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 	}
 
 	if (format) {
-		if (format === 'markdown' && format_options.length > 0) {
+		if (format === 'markdown' && format_options && format_options.length > 0) {
 			format = 'markdown:' + format_options.join(',');
 		}
 
