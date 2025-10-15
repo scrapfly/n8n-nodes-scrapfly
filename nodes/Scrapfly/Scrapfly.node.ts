@@ -68,53 +68,52 @@ export class Scrapfly implements INodeType {
 		],
 	};
 
-	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const items = this.getInputData();
-		const returnData = [];
-		const resource = this.getNodeParameter('resource', 0) as string;
+async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+	const items = this.getInputData();
+	const returnData: INodeExecutionData[] = [];
+	const length = items.length;
 
-		for (let i = 0; i < items.length; i++) {
+	for (let i = 0; i < length; i++) {
+		try {
+			const resource = this.getNodeParameter('resource', i) as string;
 			const client = new scrapflyClient(this, i, version, items[i]);
+			let responseData;
 
 			switch (resource) {
 				case 'Scrape':
-					try {
-						const responseData = await client.scrape();
-						returnData.push(responseData);
-					} catch (error) {
-						throw error;
-					}
+					responseData = await client.scrape();
 					break;
-
 				case 'Extraction':
-					try {
-						const responseData = await client.extract();
-						returnData.push(responseData);
-					} catch (error) {
-						throw error;
-					}
+					responseData = await client.extract();
 					break;
-
 				case 'Screenshot':
-					try {
-						const responseData = await client.screenshot();
-						returnData.push(responseData);
-					} catch (error) {
-						throw error;
-					}
+					responseData = await client.screenshot();
 					break;
-
 				case 'Account':
-					try {
-						const responseData = await client.account();
-						returnData.push(responseData);
-					} catch (error) {
-						throw error;
-					}
+					responseData = await client.account();
 					break;
+				default:
+					throw new Error(`Unsupported resource: ${resource}`);
 			}
-		}
 
-		return [this.helpers.returnJsonArray(returnData)];
+			const executionData = this.helpers.constructExecutionMetaData(
+				this.helpers.returnJsonArray(responseData),
+				{ itemData: { item: i } },
+			);
+			returnData.push(...executionData);
+		} catch (error) {
+			if (this.continueOnFail()) {
+				const executionErrorData = this.helpers.constructExecutionMetaData(
+					this.helpers.returnJsonArray({ error: (error as Error).message }),
+					{ itemData: { item: i } },
+				);
+				returnData.push(...executionErrorData);
+				continue;
+			}
+			throw error;
+		}
+	}
+
+	return [returnData];
 	}
 }

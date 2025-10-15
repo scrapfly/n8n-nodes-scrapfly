@@ -42,6 +42,5 @@ export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 		params.append('webhook_name', webhook_name);
 	}
 
-	console.log("extraction_template", params.get('extraction_template'));
 	return params;
 }

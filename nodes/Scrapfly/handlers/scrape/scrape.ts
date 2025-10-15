@@ -110,7 +110,7 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 		} else {
 			error.message = e.message || 'Unknown error occurred';
 		}
-		console.log('error', error);
+
 		throw new NodeApiError(this.getNode(), error, {
             httpCode: error.httpCode,
             description: error.message,

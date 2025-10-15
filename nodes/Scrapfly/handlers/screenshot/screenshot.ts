@@ -44,7 +44,7 @@ export async function screenshot(
 		const newItem: INodeExecutionData = {
 			json: item.json,
 			binary: {},
-			pairedItem: { item: 0 },
+			pairedItem: { item: i },
 		};
 
 		if (item.binary !== undefined) {
