@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-scrapfly",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Scrapfly n8n community node for web page scraping, screenshots, and AI data extraction",
   "keywords": [
     "n8n-community-node-package",
