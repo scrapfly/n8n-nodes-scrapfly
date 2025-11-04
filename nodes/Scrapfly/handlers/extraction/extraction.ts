@@ -1,11 +1,6 @@
 import { IExecuteFunctions, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineExtractionParams } from './params';
-
-interface extractionError extends Record<string, any> {
-	scrapflyErrorCode: string;
-	httpCode: string;
-	message: string;
-}
+import { ScrapflyError } from '../utils';
 
 export async function extract(this: IExecuteFunctions, i: number, userAgent: string, apiHost: string): Promise<any> {
 	let responseData;
@@ -29,39 +24,25 @@ export async function extract(this: IExecuteFunctions, i: number, userAgent: str
 	options.body = requestBody;
 
 	try {
-		responseData = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
+		responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'ScrapflyApi', options);
 		return responseData;
 	} catch (e: any) {
-		const error: extractionError = {
-			scrapflyErrorCode: 'Error',
+		const error: ScrapflyError = {
+			scrapflyError: 'Error',
 			httpCode: 'Code',
-			message: 'Message'
+			message: 'Message',
 		};
 
-		let body;
-
-        if (Array.isArray(e.messages) && e.messages.length > 0) {
-            try {
-				const message = e.messages[0];			
-				const jsonResponse = message.replace(/^\s*\d+\s*-\s*/, "");
-                body = JSON.parse(jsonResponse);
-            }
-            catch (err) {
-                body = e.description;
-            }
-        }
-        else {
-            body = e.description;
-        }
-
-		error.httpCode = e.httpCode || error.httpCode;
-		error.scrapflyErrorCode = body?.code || error.scrapflyErrorCode;
-		error.message = body?.message || error.message;
+		if (e.context.data) {
+			error.httpCode = e.context.data.http_code || error.httpCode;
+			error.scrapflyError = e.context.data.code || error.scrapflyError;
+			error.message = e.context.data.message || error.message;
+		}
 
 		throw new NodeApiError(this.getNode(), error, {
-			httpCode: error.httpCode,
-			description: error.message,
-			message: error.scrapflyErrorCode,
+            httpCode: error.httpCode,
+            description: error.message,
+            message: error.scrapflyError
 		});
 	}
 }

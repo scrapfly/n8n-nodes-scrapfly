@@ -1,11 +1,6 @@
 import { IExecuteFunctions, INodeExecutionData, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineScreenshotParams } from './params';
-
-interface screenshotError extends Record<string, any> {
-	scrapflyErrorCode: string;
-	httpCode: string;
-	message: string;
-}
+import { ScrapflyError } from '../utils';
 
 export async function screenshot(
 	this: IExecuteFunctions,
@@ -24,22 +19,21 @@ export async function screenshot(
 
 	const options: IHttpRequestOptions = {
 		headers: {
-			accept: 'application/json',
+			accept: `image/${format}, application/json`,
 			'accept-encoding': 'gzip, deflate, br',
 			'user-agent': userAgent,
 		},
 		method: 'GET',
 		url: `${apiHost}/screenshot?${params.toString()}`,
-		//@ts-ignore
-		resolveWithFullResponse: true,
-		encoding: null as unknown as IHttpRequestOptions['encoding'],
-		json: true
+		returnFullResponse: true,
+		encoding: 'arraybuffer',
+		json: false
 	};
 
 	try {
-		responseData = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
+		responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'ScrapflyApi', options);
 
-		const mimeType = responseData.headers['content-type'] || 'application/octet-stream';
+		const mimeType = responseData.headers?.['content-type'] || `image/${format}`;
 
 		const newItem: INodeExecutionData = {
 			json: item.json,
@@ -54,46 +48,51 @@ export async function screenshot(
 		item = newItem;
 		const dataPropertyNameDownload = fileName;
 
+		// convert to buffer
+		const binaryBuffer = Buffer.isBuffer(responseData.body) 
+			? responseData.body 
+			: Buffer.from(responseData.body);
+
 		item.binary![dataPropertyNameDownload] = await this.helpers.prepareBinaryData(
-			responseData.body as Buffer,
+			binaryBuffer,
 			fileName as string,
 			mimeType as string,
 		);
 
 		return item;
 	} catch (e: any) {
-		const error: screenshotError = {
-			scrapflyErrorCode: 'Error',
+		const error: ScrapflyError = {
+			scrapflyError: 'Error',
 			httpCode: 'Code',
-			message: 'Message'
+			message: 'Message',
 		};
 
-		let body;
-        if (Array.isArray(e.messages) && e.messages.length > 0) {
-            try {
-				const message = e.messages[0];			
-				const jsonResponse = message.replace(/^\s*\d+\s*-\s*/, "");
-                body = JSON.parse(jsonResponse);
-				// in case string was double-quoted
-                if (typeof body === 'string') {
-                    body = JSON.parse(body);
-                }
-            }
-            catch (err) {
-                body = e.description;
-            }
-        }
-        else {
-            body = e.description;
-        }
-		error.httpCode = e.httpCode || error.httpCode;
-		error.scrapflyErrorCode = body?.code || error.scrapflyErrorCode;
-		error.message = body?.message || error.message;
+		if (e.context.data) {
+			let errorData = e.context.data;
+			
+			// on failure, parse the error data as json
+			if (Buffer.isBuffer(errorData)) {
+				try {
+					errorData = JSON.parse(errorData.toString('utf8'));
+				} catch (parseError) {
+					error.message = errorData.toString('utf8') || error.message;
+					throw new NodeApiError(this.getNode(), error, {
+						httpCode: error.httpCode,
+						description: error.message,
+						message: error.scrapflyError
+					});
+				}
+			}
+			
+			error.httpCode = errorData.http_code || error.httpCode;
+			error.scrapflyError = errorData.code || error.scrapflyError;
+			error.message = errorData.message || error.message;
+		}
 
 		throw new NodeApiError(this.getNode(), error, {
-			httpCode: error.httpCode,
-			description: error.message,
-			message: error.scrapflyErrorCode,
+            httpCode: error.httpCode,
+            description: error.message,
+            message: error.scrapflyError
 		});
 	}
 }

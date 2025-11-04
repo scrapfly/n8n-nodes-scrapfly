@@ -6,4 +6,11 @@ export function urlsafe_b64encode(data: string): string {
       .replace(/\//g, '_')
       .replace(/=+$/, '');
     return base64;
-  }
+};
+
+ export interface ScrapflyError extends Record<string, any> {
+    scrapflyError: string;
+    httpCode: string;
+    message: string;
+};
+  

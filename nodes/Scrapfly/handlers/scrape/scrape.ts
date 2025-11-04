@@ -1,11 +1,6 @@
 import { IExecuteFunctions, NodeApiError, IHttpRequestOptions } from 'n8n-workflow';
 import { DefineScrapeParams } from './params';
-
-interface scrapeError extends Record<string, any> {
-    scrapflyErrorCode: string;
-    httpCode: string;
-    message: string;
-}
+import { ScrapflyError } from '../utils';
 
 async function handleLargeObject(
 	this: IExecuteFunctions,
@@ -26,7 +21,7 @@ async function handleLargeObject(
 		encoding: 'arraybuffer',
 	};
 
-	const content = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
+	const content = await this.helpers.httpRequestWithAuthentication.call(this, 'ScrapflyApi', options);
 
 	if (format === 'clob') {
 		result.format = 'text';
@@ -62,7 +57,7 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 	}
 
 	try {
-		responseData = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
+		responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'ScrapflyApi', options);
 		const format = responseData.result.format;
 		if (format === 'clob' || format === 'blob') {
 			responseData.result = await handleLargeObject.call(
@@ -76,45 +71,22 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 
 		return responseData;
 	} catch (e: any) {
-		const error: scrapeError = {
-			scrapflyErrorCode: 'Error',
+		const error: ScrapflyError = {
+			scrapflyError: 'Error',
 			httpCode: 'Code',
 			message: 'Message',
 		};
 
-		let body;
-		
-        if (Array.isArray(e.messages) && e.messages.length > 0) {
-            try {
-				const message = e.messages[0];			
-				const jsonResponse = message.replace(/^\s*\d+\s*-\s*/, "");
-                body = JSON.parse(jsonResponse);
-            }
-            catch (err) {
-                body = e.description;
-            }
-        }
-        else {
-            body = e.description;
-        }
-	
-		error.httpCode = e.httpCode || error.httpCode;
-
-		if (body && body.result &&
-			(body.result.error || (body.result.success === false && body.result.status_code !== 200))) {
-			error.scrapflyErrorCode = body.result.error?.code || error.scrapflyErrorCode;
-			error.message = body.result.error?.message || error.message;
-		} else if (body) {
-			error.scrapflyErrorCode = body.code || error.scrapflyErrorCode;
-			error.message = body.message || error.message;
-		} else {
-			error.message = e.message || 'Unknown error occurred';
+		if (e.context.data) {
+			error.httpCode = e.context.data.http_code || error.httpCode;
+			error.scrapflyError = e.context.data.code || error.scrapflyError;
+			error.message = e.context.data.message || error.message;
 		}
 
 		throw new NodeApiError(this.getNode(), error, {
             httpCode: error.httpCode,
             description: error.message,
-            message: error.scrapflyErrorCode
+            message: error.scrapflyError
 		});
 	}
 }

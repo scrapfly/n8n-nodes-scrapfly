@@ -13,6 +13,6 @@ export async function account(this: IExecuteFunctions, userAgent: string, apiHos
 		json: true,
 	};
 
-	responseData = await this.helpers.requestWithAuthentication.call(this, 'ScrapflyApi', options);
+	responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'ScrapflyApi', options);
 	return responseData;
 }
