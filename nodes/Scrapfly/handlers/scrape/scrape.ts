@@ -80,7 +80,7 @@ export async function scrape(this: IExecuteFunctions, i: number, userAgent: stri
 		if (e.context.data) {
 			error.httpCode = e.context.data.http_code || error.httpCode;
 			error.scrapflyError = e.context.data.code || error.scrapflyError;
-			error.message = e.context.data.message || error.message;
+			error.message = e.context.data.message || (typeof e.context === 'object' ? JSON.stringify(e.context) : String(e.context ?? 'no context'));
 		}
 
 		throw new NodeApiError(this.getNode(), error, {
