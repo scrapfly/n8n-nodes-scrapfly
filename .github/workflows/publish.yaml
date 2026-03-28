@@ -3,7 +3,7 @@ name: Publish to NPM
 on:
   push:
     tags:
-      - 'v*' # This will run the workflow when you push a tag with a version format, like v1.0.0
+      - 'v*'
 
 permissions:
   id-token: write
@@ -14,24 +14,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
 
       - run: npm install
       - run: npm run build
 
-      - name: Publish to NPM
-        run: |
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-          if grep -qE "_authToken=.{1,}" .npmrc; then
-            npm publish
-          else
-            echo "Failed to create .npmrc file" && exit 1
-          fi
+      - run: npm publish --provenance --access public
         env:
-          NPM_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
