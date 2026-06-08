@@ -1,6 +1,12 @@
 import { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { urlsafe_b64encode } from '../utils';
 
+// Same shape the Go API enforces in pkg/extraction/config.go. A value
+// matching this pattern is treated as a Scrapfly Saved Template slug
+// and forwarded verbatim; the engine resolves it to the published
+// version. Anything else is base64-wrapped as an inline JSON template.
+const SAVED_TEMPLATE_SLUG = /^[a-z0-9][a-z0-9-]{1,126}[a-z0-9]$/;
+
 export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 	const content_type = this.getNodeParameter('content_type', index) as string;
 	const additionalFields = this.getNodeParameter('additionalFields', index) as IDataObject;
@@ -26,8 +32,16 @@ export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 	}
 
 	if (extraction_template) {
-		const encoded_extraction_template = urlsafe_b64encode(extraction_template);
-		params.append('extraction_template', 'ephemeral:' + encoded_extraction_template);
+		const trimmed = extraction_template.trim();
+		if (SAVED_TEMPLATE_SLUG.test(trimmed)) {
+			// Saved template: forward the slug as-is. The Go API resolves
+			// it via /internal/extraction-template/resolve.
+			params.append('extraction_template', trimmed);
+		} else {
+			// Inline JSON template: base64-wrap with the ephemeral prefix.
+			const encoded_extraction_template = urlsafe_b64encode(extraction_template);
+			params.append('extraction_template', 'ephemeral:' + encoded_extraction_template);
+		}
 	}
 
 	if (extraction_prompt) {

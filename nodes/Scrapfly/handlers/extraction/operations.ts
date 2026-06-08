@@ -93,9 +93,10 @@ export const Extraction: INodeProperties[] = [
 			},
 			{
 				displayName: 'Extraction Template',
-				description: 'Define an extraction template to get structured data',
+				description: 'Saved-template slug (e.g. "product-card") OR inline JSON template. Saved templates let you manage versions in the Scrapfly dashboard and reference them by slug instead of pasting JSON on every call. See https://scrapfly.io/docs/extraction-api/templates.',
 				name: 'extraction_template',
-				type: 'json',
+				type: 'string',
+				placeholder: 'product-card OR {"source":"html","selectors":[...]}',
 				default: '',
 			},
 			{

@@ -40,7 +40,7 @@ describe('extraction params', () => {
         expect(params.get('charset')).toBe('auto');
     });
 
-    test('define extraction_template parameter', () => {
+    test('define extraction_template parameter (inline JSON is base64-wrapped)', () => {
         const additionalFields: IDataObject = {
             extraction_template: JSON.stringify({
                 "source": "html",
@@ -53,9 +53,74 @@ describe('extraction params', () => {
                 ]
               })
         };
-    
+
         const params = mockExtractionParams(mockContentType, additionalFields);
         expect(params.get('extraction_template')).toBe('ephemeral:eyJzb3VyY2UiOiJodG1sIiwic2VsZWN0b3JzIjpbeyJuYW1lIjoidGl0bGUiLCJxdWVyeSI6ImgxOjp0ZXh0IiwidHlwZSI6ImNzcyJ9XX0');
+    });
+
+    test('define extraction_template parameter (saved template slug is forwarded verbatim, no base64)', () => {
+        const additionalFields: IDataObject = {
+            extraction_template: 'product-card',
+        };
+
+        const params = mockExtractionParams(mockContentType, additionalFields);
+        // No ephemeral: prefix, no base64 wrapping — the Go API resolves the slug
+        // server-side via /internal/extraction-template/resolve.
+        expect(params.get('extraction_template')).toBe('product-card');
+    });
+
+    test('define extraction_template parameter (slug with hyphens and digits)', () => {
+        const additionalFields: IDataObject = {
+            extraction_template: 'shopify-product-v2',
+        };
+
+        const params = mockExtractionParams(mockContentType, additionalFields);
+        expect(params.get('extraction_template')).toBe('shopify-product-v2');
+    });
+
+    test('define extraction_template parameter (surrounding whitespace on slug is trimmed)', () => {
+        const additionalFields: IDataObject = {
+            extraction_template: '  product-card  ',
+        };
+
+        const params = mockExtractionParams(mockContentType, additionalFields);
+        expect(params.get('extraction_template')).toBe('product-card');
+    });
+
+    test('define extraction_template parameter (uppercase string does not match slug shape, falls through to base64)', () => {
+        // Slug regex requires lowercase only. An uppercase string is treated as
+        // raw template content and base64-wrapped, so the API will surface a
+        // JSON parse error rather than silently route to a non-existent slug.
+        const additionalFields: IDataObject = {
+            extraction_template: 'NotASlug',
+        };
+
+        const params = mockExtractionParams(mockContentType, additionalFields);
+        expect(params.get('extraction_template')).toMatch(/^ephemeral:/);
+    });
+
+    test('define extraction_template parameter (too-short string falls through to base64)', () => {
+        // Slug minimum length is 3 characters per the Go API regex. Shorter
+        // strings are treated as inline content.
+        const additionalFields: IDataObject = {
+            extraction_template: 'a',
+        };
+
+        const params = mockExtractionParams(mockContentType, additionalFields);
+        expect(params.get('extraction_template')).toMatch(/^ephemeral:/);
+    });
+
+    test('define extraction_template parameter (string with spaces is inline JSON, base64-wrapped)', () => {
+        // A real saved-template slug cannot contain spaces. If the user pastes
+        // a sentence by mistake, the handler must NOT silently treat it as a
+        // slug — it falls through to the inline path so the API returns a
+        // clear "Invalid JSON" error.
+        const additionalFields: IDataObject = {
+            extraction_template: 'product card extractor',
+        };
+
+        const params = mockExtractionParams(mockContentType, additionalFields);
+        expect(params.get('extraction_template')).toMatch(/^ephemeral:/);
     });
 
     test('define extraction_prompt parameter', () => {
