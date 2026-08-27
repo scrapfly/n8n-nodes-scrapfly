@@ -41,15 +41,44 @@ export const Extraction: INodeProperties[] = [
 		displayName: 'Content Type',
 		name: 'content_type',
 		type: 'options',
+		// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 		options: [
-			{ name: 'application/json', value: 'application/json' },
-			{ name: 'application/ld+json', value: 'application/ld+json' },
-			{ name: 'application/xml', value: 'application/xml' },
-			{ name: 'text/plain', value: 'text/plain' },
-			{ name: 'text/html', value: 'text/html' },
-			{ name: 'text/markdown', value: 'text/markdown' },
-			{ name: 'text/csv', value: 'text/csv' },
-			{ name: 'application/xhtml+xml', value: 'application/xhtml+xml' },
+			/* eslint-disable n8n-nodes-base/node-param-display-name-miscased --
+			   MIME types are lowercase by spec; title-casing them renders
+			   'Application/json' in the picker. Values were never affected. */
+			{
+				name: 'application/json',
+				value: 'application/json',
+			},
+			{
+				name: 'application/ld+json',
+				value: 'application/ld+json',
+			},
+			{
+				name: 'application/xhtml+xml',
+				value: 'application/xhtml+xml',
+			},
+			{
+				name: 'application/xml',
+				value: 'application/xml',
+			},
+			{
+				name: 'text/csv',
+				value: 'text/csv',
+			},
+			{
+				name: 'text/html',
+				value: 'text/html',
+			},
+			{
+				name: 'text/markdown',
+				value: 'text/markdown',
+			},
+			{
+				name: 'text/plain',
+				value: 'text/plain',
+			},
+			/* eslint-enable n8n-nodes-base/node-param-display-name-miscased */
 		],
 		default: 'text/html',
 		required: true,
@@ -93,7 +122,8 @@ export const Extraction: INodeProperties[] = [
 			},
 			{
 				displayName: 'Extraction Template',
-				description: 'Saved-template slug (e.g. "product-card") OR inline JSON template. Saved templates let you manage versions in the Scrapfly dashboard and reference them by slug instead of pasting JSON on every call. See https://scrapfly.io/docs/extraction-api/templates.',
+				description:
+					'Saved-template slug (e.g. "product-card") OR inline JSON template. Saved templates let you manage versions in the Scrapfly dashboard and reference them by slug instead of pasting JSON on every call. See https://scrapfly.io/docs/extraction-api/templates.',
 				name: 'extraction_template',
 				type: 'string',
 				placeholder: 'product-card OR {"source":"html","selectors":[...]}',
@@ -132,7 +162,7 @@ export const Extraction: INodeProperties[] = [
 					{ name: 'Vehicle Ad', value: 'vehicle_ad' },
 					{ name: 'Vehicle Ad Listing', value: 'vehicle_ad_listing' },
 				],
-				default: 'product'
+				default: 'product',
 			},
 			{
 				displayName: 'Webhook Name',

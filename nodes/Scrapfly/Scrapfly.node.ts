@@ -2,7 +2,8 @@ import {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeType,
-	INodeTypeDescription
+	INodeTypeDescription,
+	NodeOperationError
 } from 'n8n-workflow';
 
 import { scrapflyClient } from './handlers/client';
@@ -93,7 +94,7 @@ async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 					responseData = await client.account();
 					break;
 				default:
-					throw new Error(`Unsupported resource: ${resource}`);
+					throw new NodeOperationError(this.getNode(), `Unsupported resource: ${resource}`);
 			}
 
 			const executionData = this.helpers.constructExecutionMetaData(
