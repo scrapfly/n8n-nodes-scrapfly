@@ -18,12 +18,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
+
+      # npm OIDC trusted publishing needs npm >= 11.5.1.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - run: npm install
       - run: npm run build
 
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
+      # No NODE_AUTH_TOKEN: authentication is OIDC trusted publishing,
+      # configured on npmjs.com for this repo + workflow. Provenance is
+      # attached automatically by npm.
+      - run: npm publish --access public
