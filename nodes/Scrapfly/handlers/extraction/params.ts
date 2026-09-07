@@ -1,7 +1,7 @@
 import { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { urlsafe_b64encode } from '../utils';
 
-// Same shape the Go API enforces in pkg/extraction/config.go. A value
+// Same slug shape the Scrapfly Extraction API validates. A value
 // matching this pattern is treated as a Scrapfly Saved Template slug
 // and forwarded verbatim; the engine resolves it to the published
 // version. Anything else is base64-wrapped as an inline JSON template.
@@ -35,7 +35,7 @@ export function DefineExtractionParams(this: IExecuteFunctions, index: number) {
 		const trimmed = extraction_template.trim();
 		if (SAVED_TEMPLATE_SLUG.test(trimmed)) {
 			// Saved template: forward the slug as-is. The Go API resolves
-			// it via /internal/extraction-template/resolve.
+			// it to whichever version of that template is published at call time.
 			params.append('extraction_template', trimmed);
 		} else {
 			// Inline JSON template: base64-wrap with the ephemeral prefix.

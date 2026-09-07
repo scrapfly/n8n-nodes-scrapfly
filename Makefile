@@ -1,5 +1,5 @@
 # Scrapfly n8n community node — release/dev Makefile.
-# Mirrors the other SDK Makefiles so the release procedure in task/sdk-release.md
+# Mirrors the other Scrapfly SDK Makefiles so one release procedure
 # can treat every target uniformly: make release VERSION=x.y.z NEXT_VERSION=x.y.z+1
 
 VERSION ?=

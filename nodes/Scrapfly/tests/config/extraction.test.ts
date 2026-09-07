@@ -65,7 +65,7 @@ describe('extraction params', () => {
 
         const params = mockExtractionParams(mockContentType, additionalFields);
         // No ephemeral: prefix, no base64 wrapping — the Go API resolves the slug
-        // server-side via /internal/extraction-template/resolve.
+        // server-side to whichever version of that template is published at call time.
         expect(params.get('extraction_template')).toBe('product-card');
     });
 
