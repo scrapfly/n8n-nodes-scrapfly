@@ -52,7 +52,15 @@ release:
 	git pull origin main
 	$(MAKE) lint
 	$(MAKE) build
-	npm version --no-git-tag-version "$(VERSION)"
+	@# Idempotent: a previous `make bump` may have already advanced
+	@# package.json to the target. Plain `npm version` errors "Version not
+	@# changed" and aborts the whole release when it has.
+	@current=$$(node -p "require('./package.json').version"); \
+	if [ "$$current" = "$(VERSION)" ]; then \
+		echo "release: package.json already at $(VERSION), skipping npm version"; \
+	else \
+		npm version --no-git-tag-version "$(VERSION)"; \
+	fi
 	git add package.json package-lock.json
 	-git commit -m "Release $(VERSION)"
 	-git push origin main
