@@ -83,13 +83,85 @@ describe('scrape params', () => {
         expect(params.get('country')).toBe('us');
     });
 
+    test('define unblocker parameter', () => {
+        const additionalFields: IDataObject = {
+            unblocker: true,
+        };
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('true');
+        // wire key is pinned to `asp`; `unblocker` must never reach the API
+        expect(params.get('unblocker')).toBeNull();
+        expect(params.getAll('asp')).toEqual(['true']);
+    });
+
+    test('define unblocker parameter disabled', () => {
+        const additionalFields: IDataObject = {
+            unblocker: false,
+        };
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('false');
+    });
+
     test('define asp parameter', () => {
         const additionalFields: IDataObject = {
             asp: true,
         };
-    
+
         const params = mockScrapeParams(mockUrl, additionalFields);
         expect(params.get('asp')).toBe('true');
+    });
+
+    // a collection key removed and re-added arrives as an explicit undefined, which
+    // is not a supplied value: it must fall through to the other name
+    test('explicitly undefined asp falls through to unblocker', () => {
+        const additionalFields: IDataObject = {
+            asp: undefined,
+            unblocker: true,
+        };
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('true');
+        expect(params.get('unblocker')).toBeNull();
+    });
+
+    test('legacy stored asp parameter set to false keeps the feature off', () => {
+        const additionalFields: IDataObject = {
+            asp: false,
+        };
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('false');
+    });
+
+    // Precedence matches the CLI, the MCP servers and the SDKs: a supplied `asp`
+    // wins, never an OR of the two.
+    test('stored asp wins over the unblocker field when both are present', () => {
+        const additionalFields: IDataObject = {
+            asp: true,
+            unblocker: false,
+        };
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('true');
+    });
+
+    test('stored asp of false wins over an enabled unblocker field', () => {
+        const additionalFields: IDataObject = {
+            asp: false,
+            unblocker: true,
+        };
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('false');
+    });
+
+    test('neither unblocker nor asp leaves the feature off', () => {
+        const additionalFields: IDataObject = {};
+
+        const params = mockScrapeParams(mockUrl, additionalFields);
+        expect(params.get('asp')).toBe('false');
     });
 
     test('define cost_budget parameter', () => {

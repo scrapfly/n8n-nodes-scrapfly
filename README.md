@@ -11,7 +11,7 @@ from [Scrapfly documentation](https://scrapfly.io/docs/integration/n8n) to see u
 
 ## Operations
 - __Scrape web page URLs__  
-Scrapes the HTML source of a given web page URL with the support of headless browsers, proxies, and anti-bot bypass.
+Scrapes the HTML source of a given web page URL with the support of headless browsers, proxies, and Unblocker anti-bot bypass.
 - __Extract Data From an HTML, Text, or Markdown Document Using AI__  
 Automatically parse HTML, Text, or Markdown documents using pre-defined templates or LLM prompts to extract structured data.
 - __Capture web page screenshot__  
@@ -26,6 +26,14 @@ ScrapFly API key is used as a credential key. To get your API key, register for 
 ## Usage
 
 For example, regarding usage and predefined workflow templates, please look at [ScrapFly's n8n integration docs](https://scrapfly.io/docs/integration/n8n).
+
+### Unblocker (formerly "Anti-Scraping Protection")
+
+The anti-bot bypass field on the __Scrape Web Page__ and __Scrape API Request__ operations is now
+named __Unblocker__. Workflows saved before the rename stored it under the old `asp` key; they keep
+working untouched and no re-save is required. If a workflow carries both keys, the stored `asp`
+value is the one that applies, which is how every Scrapfly integration settles the two names;
+delete the `asp` key from the workflow JSON to hand the decision back to the __Unblocker__ field.
 
 ## Resources
 

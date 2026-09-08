@@ -26,7 +26,16 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 	const timeout = additionalFields.timeout as string;
 	const proxy_pool = additionalFields.proxy_pool as string;
 	const country = additionalFields.country as string;
-	const asp = additionalFields.asp === true;
+	// Property renamed asp -> unblocker. n8n stores collection keys inside the saved
+	// workflow JSON, so workflows written before the rename keep `asp` forever and the
+	// node no longer renders it. Precedence is the one every Scrapfly surface uses:
+	// an explicitly supplied `asp` wins, `unblocker` answers only when `asp` is
+	// absent, and they are never OR-ed, so an explicit false on the winner turns the
+	// feature off.
+	const unblocker =
+		additionalFields.asp !== undefined
+			? additionalFields.asp === true
+			: additionalFields.unblocker === true;
 	const cost_budget = additionalFields.cost_budget as string;
 	const render_js = additionalFields.render_js === true;
 	const auto_scroll = additionalFields.auto_scroll === true;
@@ -62,7 +71,10 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 		url: url,
 		retry: retry ? 'true' : 'false',
 		proxy_pool: proxy_pool || 'public_datacenter_pool',
-		asp: asp ? 'true' : 'false',
+		// Wire key stays `asp`. Published node versions are immutable and pinned; one
+		// that sent `unblocker` to an API deployment which has not learned it would
+		// silently drop a paid feature (request succeeds, is billed, returns blocked).
+		asp: unblocker ? 'true' : 'false',
 		render_js: render_js ? 'true' : 'false',
 		session_sticky_proxy: session_sticky_proxy ? 'true' : 'false',
 		cache: cache ? 'true' : 'false',

@@ -171,16 +171,19 @@ export const Scrape: INodeProperties[] = [
 				default: 'us',
 			},
 			{
-				displayName: 'Anti-Scraping Protection',
-				description: 'Whether to enable anti-scraping protection to bypass antibots',
-				name: 'asp',
+				// Renamed from `asp`. The old key survives in already-saved workflows and is
+				// still honoured as a fallback in handlers/scrape/params.ts; do not re-add it
+				// as a second visible checkbox.
+				displayName: 'Unblocker',
+				description: 'Whether to enable Unblocker to bypass anti-bot protection',
+				name: 'unblocker',
 				type: 'boolean',
 				default: false,
 			},
 			{
 				displayName: 'Cost Budget',
 				description:
-					'ASP dynamically retry and upgrade some parameters (such as proxy_pool, browser) to pass and this changes dynamically the cost of the call, to make it more predictable, you can define a budget to respect. Make sure to set the minimum required to pass your target or the call will be rejected without even trying.',
+					'Unblocker dynamically retries and upgrades some parameters (such as proxy_pool, browser) to pass, and this changes the cost of the call dynamically. To make it more predictable, you can define a budget to respect. Make sure to set the minimum required to pass your target or the call will be rejected without even trying.',
 				name: 'cost_budget',
 				type: 'number',
 				default: null,
@@ -595,9 +598,12 @@ export const Scrape: INodeProperties[] = [
 				default: 'us',
 			},
 			{
-				displayName: 'Anti-Scraping Protection',
-				description: 'Whether to enable anti-scraping protection to bypass antibots',
-				name: 'asp',
+				// Renamed from `asp`. The old key survives in already-saved workflows and is
+				// still honoured as a fallback in handlers/scrape/params.ts; do not re-add it
+				// as a second visible checkbox.
+				displayName: 'Unblocker',
+				description: 'Whether to enable Unblocker to bypass anti-bot protection',
+				name: 'unblocker',
 				type: 'boolean',
 				default: false,
 			},
