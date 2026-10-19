@@ -74,6 +74,32 @@ describe('scrape params', () => {
         expect(params.get('proxy_pool')).toBe('public_residential_pool');
     });
 
+    test.each(['basic', 'unblocker', 'unblocker_ultra', 'auto'])('the %s pool goes out alone, without asp', (pool) => {
+        const params = mockScrapeParams(mockUrl, { proxy_pool: pool });
+        expect(params.get('proxy_pool')).toBe(pool);
+        expect(params.has('asp')).toBe(false);
+    });
+
+    // A workflow saved with the toggle and later given one of the four pools: the API
+    // ignores the toggle beside it, so the node does not send it.
+    test.each(['basic', 'unblocker', 'unblocker_ultra', 'auto'])('the %s pool set beside a stored toggle still goes out alone', (pool) => {
+        const params = mockScrapeParams(mockUrl, { proxy_pool: pool, unblocker: true, asp: true });
+        expect(params.get('proxy_pool')).toBe(pool);
+        expect(params.has('asp')).toBe(false);
+    });
+
+    test('no pool keeps the legacy request unchanged', () => {
+        const params = mockScrapeParams(mockUrl, {});
+        expect(params.get('proxy_pool')).toBe('public_datacenter_pool');
+        expect(params.get('asp')).toBe('false');
+    });
+
+    test('a legacy pool keeps its stored toggle', () => {
+        const params = mockScrapeParams(mockUrl, { proxy_pool: 'public_residential_pool', unblocker: true });
+        expect(params.get('proxy_pool')).toBe('public_residential_pool');
+        expect(params.getAll('asp')).toEqual(['true']);
+    });
+
     test('define country parameter', () => {
         const additionalFields: IDataObject = {
             country: 'us',

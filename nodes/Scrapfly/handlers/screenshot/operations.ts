@@ -95,6 +95,20 @@ export const Screenshot: INodeProperties[] = [
 				default: 'us',
 			},
 			{
+				displayName: 'Proxy Pool',
+				description:
+					"Proxy pool. Basic: datacenter proxies, Unblocker off. Unblocker: residential proxies with the Unblocker. Unblocker Ultra: residential proxies with the Unblocker, the only pool accepted by the targets and anti-bot protections that have a price of their own (they refuse Basic and Unblocker with ERR::PROXY::UNBLOCKER_ULTRA_REQUIRED). Auto: the API picks the pool before the request, from the target's profile: the Unblocker on datacenter proxies, or the pool the target needs, and is accepted on every target. The screenshot price is the same on every pool.",
+				name: 'proxy_pool',
+				type: 'options',
+				options: [
+					{ name: 'Basic', value: 'basic' },
+					{ name: 'Unblocker', value: 'unblocker' },
+					{ name: 'Unblocker Ultra', value: 'unblocker_ultra' },
+					{ name: 'Auto', value: 'auto' },
+				],
+				default: 'basic',
+			},
+			{
 				displayName: 'Timeout',
 				description:
 					"Timeout expressed in milliseconds, set to 150000 by default. It represents the maximum time allowed for ScrapFly to try to perform the scrape. It's prone to other settings, such as retry, rendering_wait, and wait_for_selector. If not defined, managed by Scrapfly",

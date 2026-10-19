@@ -49,6 +49,16 @@ describe('screenshot params', () => {
         expect(params.get('capture')).toBe('fullpage');
     });
 
+    test.each(['basic', 'unblocker', 'unblocker_ultra', 'auto'])('define the %s proxy_pool', (pool) => {
+        const params = mockScreenshotParams(mockUrl, { proxy_pool: pool });
+        expect(params.get('proxy_pool')).toBe(pool);
+    });
+
+    test('no proxy_pool leaves the screenshot defaults to the API', () => {
+        const params = mockScreenshotParams(mockUrl, {});
+        expect(params.has('proxy_pool')).toBe(false);
+    });
+
     test('define resolution parameter', () => {
         const additionalFields: IDataObject = {
             resolution: '1920x1080',

@@ -15,6 +15,9 @@ type Screenshots = {
 	}[];
 };
 
+// The pools that decide the Unblocker alone: the API ignores an `asp` sent beside them.
+const POOLS_DECIDING_UNBLOCKER = ['basic', 'unblocker', 'unblocker_ultra', 'auto'];
+
 export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 	const url = this.getNodeParameter('url', index) as string;
 	const additionalFields = this.getNodeParameter('additionalFields', index) as IDataObject;
@@ -26,12 +29,12 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 	const timeout = additionalFields.timeout as string;
 	const proxy_pool = additionalFields.proxy_pool as string;
 	const country = additionalFields.country as string;
-	// Property renamed asp -> unblocker. n8n stores collection keys inside the saved
-	// workflow JSON, so workflows written before the rename keep `asp` forever and the
-	// node no longer renders it. Precedence is the one every Scrapfly surface uses:
-	// an explicitly supplied `asp` wins, `unblocker` answers only when `asp` is
-	// absent, and they are never OR-ed, so an explicit false on the winner turns the
-	// feature off.
+	// The deprecated Unblocker toggle. `unblocker` and `asp`, its name before 0.1.10,
+	// reach here only from a typeVersion 1 node, the one version that declares them: n8n
+	// drops undeclared collection keys when it loads a workflow. Precedence is the one
+	// every Scrapfly surface uses: an explicitly supplied `asp` wins, `unblocker` answers
+	// only when `asp` is absent, and they are never OR-ed, so an explicit false on the
+	// winner turns the feature off.
 	const unblocker =
 		additionalFields.asp !== undefined
 			? additionalFields.asp === true
@@ -67,14 +70,13 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 	const correlation_id = additionalFields.correlation_id as string;
 	const webhook_name = additionalFields.webhook_name as string;
 
+	// One of those pools goes out alone. Every other request, one with no pool
+	// included, is sent exactly as before they existed.
+	const poolDecidesUnblocker = POOLS_DECIDING_UNBLOCKER.includes(proxy_pool);
 	const params = new URLSearchParams({
 		url: url,
 		retry: retry ? 'true' : 'false',
 		proxy_pool: proxy_pool || 'public_datacenter_pool',
-		// Wire key stays `asp`. Published node versions are immutable and pinned; one
-		// that sent `unblocker` to an API deployment which has not learned it would
-		// silently drop a paid feature (request succeeds, is billed, returns blocked).
-		asp: unblocker ? 'true' : 'false',
 		render_js: render_js ? 'true' : 'false',
 		session_sticky_proxy: session_sticky_proxy ? 'true' : 'false',
 		cache: cache ? 'true' : 'false',
@@ -83,6 +85,13 @@ export function DefineScrapeParams(this: IExecuteFunctions, index: number) {
 		dns: dns ? 'true' : 'false',
 		ssl: ssl ? 'true' : 'false',
 	});
+
+	if (!poolDecidesUnblocker) {
+		// Wire key stays `asp`. Published node versions are immutable and pinned; one
+		// that sent `unblocker` to an API deployment which has not learned it would
+		// silently drop a paid feature (request succeeds, is billed, returns blocked).
+		params.append('asp', unblocker ? 'true' : 'false');
+	}
 
 	if (body) {
 		params.append('body', body);

@@ -11,6 +11,7 @@ export function DefineScreenshotParams(this: IExecuteFunctions, index: number) {
 	const capture = additionalFields.capture as string;
 	const resolution = additionalFields.resolution as string;
 	const country = additionalFields.country as string;
+	const proxy_pool = additionalFields.proxy_pool as string;
 	const timeout = additionalFields.timeout as string;
 	const rendering_wait = additionalFields.rendering_wait as string;
 	const wait_for_selector = additionalFields.wait_for_selector as string;
@@ -43,6 +44,10 @@ export function DefineScreenshotParams(this: IExecuteFunctions, index: number) {
 
 	if (country) {
 		params.append('country', country);
+	}
+
+	if (proxy_pool) {
+		params.append('proxy_pool', proxy_pool);
 	}
 
 	if (timeout) {

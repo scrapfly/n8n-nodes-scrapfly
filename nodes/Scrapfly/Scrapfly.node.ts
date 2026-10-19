@@ -19,7 +19,11 @@ export class Scrapfly implements INodeType {
 		name: 'Scrapfly',
 		icon: 'file:scrapfly.svg',
 		group: ['transform'],
-		version: 1,
+		// Version 2 drops the deprecated Unblocker checkboxes: Proxy Pool decides the
+		// Unblocker. Workflows saved on version 1 keep them (handlers/scrape/operations.ts,
+		// legacyUnblocker and legacyAsp).
+		version: [1, 2],
+		defaultVersion: 2,
 		subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
 		description:
 			'Scrapfly data collection APIs for web page scraping, screenshots, and AI data extraction',

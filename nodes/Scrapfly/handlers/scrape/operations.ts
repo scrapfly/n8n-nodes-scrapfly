@@ -1,5 +1,41 @@
 import { INodeProperties } from 'n8n-workflow';
 
+// The deprecated Unblocker toggle, declared for typeVersion 1 nodes only. n8n drops
+// every collection key the node no longer declares when it loads a workflow, so without
+// this option a saved workflow's checked Unblocker would run with the bypass off. Nodes
+// created from version 2 on never show it.
+const legacyUnblocker: INodeProperties = {
+	displayName: 'Unblocker (Legacy)',
+	description:
+		'Whether to turn the Unblocker on. Deprecated: use Proxy Pool (Unblocker Ultra for the Unblocker). Ignored when Proxy Pool is Basic, Unblocker, Unblocker Ultra or Auto. The <a href="https://scrapfly.io/new-pricing#legacy-spellings">migration guide</a> covers requests written before the proxy pools.',
+	name: 'unblocker',
+	type: 'boolean',
+	default: false,
+	displayOptions: {
+		show: {
+			'@version': [1],
+		},
+	},
+};
+
+// The same toggle under its name before 0.1.10, stored as `asp` by the workflows saved
+// then. Declared for typeVersion 1 nodes only, for the reason above: 0.1.10 left it
+// undeclared, so those workflows ran with the bypass off. A stored `asp` wins over
+// `unblocker` (handlers/scrape/params.ts).
+const legacyAsp: INodeProperties = {
+	displayName: 'Anti-Scraping Protection (Legacy)',
+	description:
+		'Whether to turn the Unblocker on, under the name Unblocker (Legacy) had before. Wins over Unblocker (Legacy) when both are set. Deprecated: use Proxy Pool (Unblocker Ultra for the Unblocker). Ignored when Proxy Pool is Basic, Unblocker, Unblocker Ultra or Auto. The <a href="https://scrapfly.io/new-pricing#legacy-spellings">migration guide</a> covers requests written before the proxy pools.',
+	name: 'asp',
+	type: 'boolean',
+	default: false,
+	displayOptions: {
+		show: {
+			'@version': [1],
+		},
+	},
+};
+
 export const Scrape: INodeProperties[] = [
 	{
 		displayName: 'Operation',
@@ -154,14 +190,23 @@ export const Scrape: INodeProperties[] = [
 			},
 			{
 				displayName: 'Proxy Pool',
-				description: 'The used IP address proxy pool',
+				description:
+					'Proxy pool. Basic: datacenter proxies, Unblocker off. Unblocker: residential proxies with the Unblocker. Unblocker Ultra: residential proxies with the Unblocker, the only pool accepted by the targets and anti-bot protections that have a price of their own (they refuse Basic and Unblocker with ERR::PROXY::UNBLOCKER_ULTRA_REQUIRED). Auto: the API picks the pool before the request, from the target\'s profile: the Unblocker on datacenter proxies, or the pool the target needs. Auto is accepted on every target, the ones that require Unblocker Ultra included, where their price is added, and is priced as the pool it runs on. The two legacy pools are deprecated: the <a href="https://scrapfly.io/new-pricing#legacy-spellings">migration guide</a> covers them.',
 				name: 'proxy_pool',
 				type: 'options',
+				// The four pools lead. The two legacy values stay listed because saved
+				// workflows store them, and an options value missing from this list
+				// flags the node.
+				// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 				options: [
-					{ name: 'Public Datacenter Pool', value: 'public_datacenter_pool' },
-					{ name: 'Public Residential Pool', value: 'public_residential_pool' },
+					{ name: 'Basic', value: 'basic' },
+					{ name: 'Unblocker', value: 'unblocker' },
+					{ name: 'Unblocker Ultra', value: 'unblocker_ultra' },
+					{ name: 'Auto', value: 'auto' },
+					{ name: 'Public Datacenter Pool (Legacy)', value: 'public_datacenter_pool' },
+					{ name: 'Public Residential Pool (Legacy)', value: 'public_residential_pool' },
 				],
-				default: 'public_datacenter_pool',
+				default: 'basic',
 			},
 			{
 				displayName: 'Country',
@@ -170,20 +215,12 @@ export const Scrape: INodeProperties[] = [
 				type: 'string',
 				default: 'us',
 			},
-			{
-				// Renamed from `asp`. The old key survives in already-saved workflows and is
-				// still honoured as a fallback in handlers/scrape/params.ts; do not re-add it
-				// as a second visible checkbox.
-				displayName: 'Unblocker',
-				description: 'Whether to enable Unblocker to bypass anti-bot protection',
-				name: 'unblocker',
-				type: 'boolean',
-				default: false,
-			},
+			legacyUnblocker,
+			legacyAsp,
 			{
 				displayName: 'Cost Budget',
 				description:
-					'Unblocker dynamically retries and upgrades some parameters (such as proxy_pool, browser) to pass, and this changes the cost of the call dynamically. To make it more predictable, you can define a budget to respect. Make sure to set the minimum required to pass your target or the call will be rejected without even trying.',
+					'Maximum API credits the call may cost. Make sure to set the minimum required to pass your target or the call will be rejected without even trying.',
 				name: 'cost_budget',
 				type: 'number',
 				default: null,
@@ -581,14 +618,23 @@ export const Scrape: INodeProperties[] = [
 
 			{
 				displayName: 'Proxy Pool',
-				description: 'The used IP address proxy pool',
+				description:
+					'Proxy pool. Basic: datacenter proxies, Unblocker off. Unblocker: residential proxies with the Unblocker. Unblocker Ultra: residential proxies with the Unblocker, the only pool accepted by the targets and anti-bot protections that have a price of their own (they refuse Basic and Unblocker with ERR::PROXY::UNBLOCKER_ULTRA_REQUIRED). Auto: the API picks the pool before the request, from the target\'s profile: the Unblocker on datacenter proxies, or the pool the target needs. Auto is accepted on every target, the ones that require Unblocker Ultra included, where their price is added, and is priced as the pool it runs on. The two legacy pools are deprecated: the <a href="https://scrapfly.io/new-pricing#legacy-spellings">migration guide</a> covers them.',
 				name: 'proxy_pool',
 				type: 'options',
+				// The four pools lead. The two legacy values stay listed because saved
+				// workflows store them, and an options value missing from this list
+				// flags the node.
+				// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 				options: [
-					{ name: 'Public Datacenter Pool', value: 'public_datacenter_pool' },
-					{ name: 'Public Residential Pool', value: 'public_residential_pool' },
+					{ name: 'Basic', value: 'basic' },
+					{ name: 'Unblocker', value: 'unblocker' },
+					{ name: 'Unblocker Ultra', value: 'unblocker_ultra' },
+					{ name: 'Auto', value: 'auto' },
+					{ name: 'Public Datacenter Pool (Legacy)', value: 'public_datacenter_pool' },
+					{ name: 'Public Residential Pool (Legacy)', value: 'public_residential_pool' },
 				],
-				default: 'public_datacenter_pool',
+				default: 'basic',
 			},
 			{
 				displayName: 'Country',
@@ -597,16 +643,8 @@ export const Scrape: INodeProperties[] = [
 				type: 'string',
 				default: 'us',
 			},
-			{
-				// Renamed from `asp`. The old key survives in already-saved workflows and is
-				// still honoured as a fallback in handlers/scrape/params.ts; do not re-add it
-				// as a second visible checkbox.
-				displayName: 'Unblocker',
-				description: 'Whether to enable Unblocker to bypass anti-bot protection',
-				name: 'unblocker',
-				type: 'boolean',
-				default: false,
-			},
+			legacyUnblocker,
+			legacyAsp,
 			{
 				displayName: 'Session',
 				description:
